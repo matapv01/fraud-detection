@@ -41,10 +41,12 @@ def remove_extreme_outliers(df, features=['V14','V12','V10'], class_col='Class',
 
 
 from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import RobustScaler
 
-def scale_amount_time_train_test(train_df, test_df, scaler_type='robust'):
+def scale_amount_time_train_test(train_df, test_df, scaler_type='robust', save_scaler=False):
     """
     Scale Amount và Time, fit trên train, transform train + test
+    Trả về train_df, test_df đã scale và các scaler đã fit để dùng sau
     """
     if scaler_type=='robust':
         scaler_amount = RobustScaler()
@@ -71,4 +73,37 @@ def scale_amount_time_train_test(train_df, test_df, scaler_type='robust'):
     train_df.drop(['Amount','Time'], axis=1, inplace=True)
     test_df.drop(['Amount','Time'], axis=1, inplace=True)
     
-    return train_df, test_df
+    # Lưu scaler nếu cần
+    if save_scaler:
+        import joblib
+        joblib.dump(scaler_amount, 'scaler_amount.pkl')
+        joblib.dump(scaler_time, 'scaler_time.pkl')
+        print("Scalers saved: scaler_amount.pkl, scaler_time.pkl")
+    
+    return train_df, test_df, scaler_amount, scaler_time
+
+
+import pandas as pd
+import joblib
+
+def scale_test_with_saved_scaler(test_df, amount_scaler_path='scaler_amount.pkl', time_scaler_path='scaler_time.pkl'):
+    """
+    Transform test_df bằng các scaler đã fit trên train_df và lưu trước đó.
+    test_df: dataframe có cột 'Amount' và 'Time'
+    Trả về dataframe đã scale, giữ nguyên index
+    """
+    test_df = test_df.copy()
+    
+    # Load scaler đã fit
+    scaler_amount = joblib.load(amount_scaler_path)
+    scaler_time   = joblib.load(time_scaler_path)
+    
+    # Transform
+    test_df['scaled_amount'] = scaler_amount.transform(test_df[['Amount']])
+    test_df['scaled_time']   = scaler_time.transform(test_df[['Time']])
+    
+    # Drop cột gốc
+    test_df.drop(['Amount','Time'], axis=1, inplace=True)
+    
+    return test_df
+
