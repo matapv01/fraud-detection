@@ -1,36 +1,45 @@
+from imblearn.over_sampling import SMOTE
+import joblib
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import roc_auc_score, roc_curve, classification_report
+from sklearn.metrics import classification_report, roc_auc_score, roc_curve
 import matplotlib.pyplot as plt
-import joblib   # <--- thêm thư viện để lưu mô hình
 
-def train_lr_full_train(df_train, df_test, target_col='Class', save_plot_prefix='lr', 
-                        save_model_path='lr_model.pkl', C=1.0, max_iter=500):
-    """
-    Train Logistic Regression trên toàn bộ train set, đánh giá trực tiếp trên test set.
-    Đồng thời lưu mô hình đã train vào file.
-    """
+
+def train_lr_full_train(
+    df_train, 
+    df_test, 
+    target_col='Class', 
+    save_plot_prefix='lr', 
+    save_model_path='lr_model.pkl',
+    max_iter=200,
+    class_weights='balanced',   # optional
+    use_smote=False              # <-- mới
+):
     # Tách features và label
     X_train = df_train.drop(columns=[target_col])
     y_train = df_train[target_col]
     X_test = df_test.drop(columns=[target_col])
     y_test = df_test[target_col]
 
+    # Áp dụng SMOTE nếu cần
+    if use_smote:
+        smote = SMOTE(random_state=42)
+        X_train, y_train = smote.fit_resample(X_train, y_train)
+        print(f"After SMOTE, class distribution:\n{y_train.value_counts()}")
+
     # Train Logistic Regression
     lr = LogisticRegression(
-        C=C,
-        penalty='l2',
-        solver='liblinear',
-        class_weight='balanced',
+        class_weight=class_weights,
         random_state=42,
         max_iter=max_iter
     )
     lr.fit(X_train, y_train)
 
-    # Lưu mô hình
+    # Lưu model
     joblib.dump(lr, save_model_path)
     print(f"\nModel saved to: {save_model_path}")
 
-    # Dự đoán trên test set
+    # Dự đoán
     y_pred = lr.predict(X_test)
     y_proba = lr.predict_proba(X_test)[:,1]
 
@@ -52,4 +61,9 @@ def train_lr_full_train(df_train, df_test, target_col='Class', save_plot_prefix=
     plt.savefig(f'{save_plot_prefix}_roc.png')
     plt.show()
 
-    return lr, {'y_test': y_test, 'y_pred': y_pred, 'y_proba': y_proba, 'roc_auc': auc_score}
+    return lr, {
+        'y_test': y_test, 
+        'y_pred': y_pred, 
+        'y_proba': y_proba, 
+        'roc_auc': auc_score
+    }

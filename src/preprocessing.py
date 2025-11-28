@@ -1,5 +1,8 @@
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import RobustScaler
+import pandas as pd
+import joblib
 
 def remove_extreme_outliers(df, features=['V14','V12','V10'], class_col='Class', class_value=1, iqr_multiplier=1.5):
     """
@@ -40,10 +43,9 @@ def remove_extreme_outliers(df, features=['V14','V12','V10'], class_col='Class',
     return df_clean
 
 
-from sklearn.preprocessing import RobustScaler
-from sklearn.preprocessing import RobustScaler
 
-def scale_amount_time_train_test(train_df, test_df, scaler_type='robust', save_scaler=False):
+
+def scale_amount_time_train_test(train_df, test_df, scaler_type='standard', save_scaler=True):
     """
     Scale Amount và Time, fit trên train, transform train + test
     Trả về train_df, test_df đã scale và các scaler đã fit để dùng sau
@@ -83,8 +85,7 @@ def scale_amount_time_train_test(train_df, test_df, scaler_type='robust', save_s
     return train_df, test_df, scaler_amount, scaler_time
 
 
-import pandas as pd
-import joblib
+
 
 def scale_test_with_saved_scaler(test_df, amount_scaler_path='scaler_amount.pkl', time_scaler_path='scaler_time.pkl'):
     """
