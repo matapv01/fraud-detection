@@ -1,7 +1,13 @@
 from imblearn.over_sampling import SMOTE
 import joblib
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report, roc_auc_score, roc_curve
+from sklearn.metrics import (
+    classification_report, 
+    roc_auc_score, 
+    roc_curve, 
+    confusion_matrix, 
+    ConfusionMatrixDisplay
+)
 import matplotlib.pyplot as plt
 
 
@@ -9,11 +15,11 @@ def train_lr_full_train(
     df_train, 
     df_test, 
     target_col='Class', 
-    save_plot_prefix='lr', 
-    save_model_path='lr_model.pkl',
+    save_plot_prefix='checkpoint/lr', 
+    save_model_path='checkpoint/lr_model.pkl',
     max_iter=200,
-    class_weights='balanced',   # optional
-    use_smote=False              # <-- mới
+    class_weights='balanced',
+    use_smote=False
 ):
     # Tách features và label
     X_train = df_train.drop(columns=[target_col])
@@ -48,6 +54,20 @@ def train_lr_full_train(
     auc_score = roc_auc_score(y_test, y_proba)
     print(f"ROC AUC (Test set): {auc_score:.4f}")
 
+    # *** Confusion Matrix ***
+    cm = confusion_matrix(y_test, y_pred)
+    print("\nConfusion Matrix:")
+    print(cm)
+
+    # Plot Confusion Matrix
+    plt.figure(figsize=(5,5))
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+    disp.plot(cmap='Blues', values_format='d')
+    plt.title('Confusion Matrix (Test set)')
+    plt.grid(False)
+    plt.savefig(f'{save_plot_prefix}_confusion_matrix.png')
+    plt.show()
+
     # Vẽ ROC Curve
     fpr, tpr, _ = roc_curve(y_test, y_proba)
     plt.figure(figsize=(6,6))
@@ -65,5 +85,6 @@ def train_lr_full_train(
         'y_test': y_test, 
         'y_pred': y_pred, 
         'y_proba': y_proba, 
-        'roc_auc': auc_score
+        'roc_auc': auc_score,
+        'confusion_matrix': cm
     }

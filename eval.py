@@ -7,7 +7,7 @@ import seaborn as sns
 from src.preprocessing import scale_amount_time_train_test, remove_extreme_outliers, scale_test_with_saved_scaler
 
 def evaluate_saved_model(df, model_path, target_col='Class', test_size=0.1, random_state=42,
-                         save_plot_prefix='lr_test'):
+                         save_plot_prefix='checkpoint/lr_test'):
     """
     Load mô hình đã train, đánh giá trên test (10%), in classification metrics,
     in confusion matrix dạng text, vẽ confusion matrix và ROC curve.
