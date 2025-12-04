@@ -31,7 +31,7 @@ train_df_scaled, test_df_scaled, scaler_amount, scaler_time = scale_amount_time_
 
 
 # Train AE
-# ae_model, recon_error_test = train_ae(train_df_scaled, test_df_scaled, target_col='Class')
+ae_model, recon_error_test = train_ae(train_df_scaled, test_df_scaled, target_col='Class')
 
 # eval AE
 from src.train_ae import Autoencoder
